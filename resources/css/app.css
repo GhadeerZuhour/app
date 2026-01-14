@@ -23,9 +23,15 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
-    --color-accent-foreground: var(--color-white);
+    /* 🔥 TAZREEM BRAND COLORS */
+    --color-tazreem-orange: #F7941D;
+    --color-tazreem-red: #E53935;
+    --color-tazreem-dark: #D84315;
+
+    /* Accent mapping (used by Flux, focus rings, buttons) */
+    --color-accent: var(--color-tazreem-orange);
+    --color-accent-content: var(--color-tazreem-dark);
+    --color-accent-foreground: #ffffff;
 }
 
 @layer theme {

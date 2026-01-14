@@ -4,8 +4,6 @@ use App\Models\User;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
-
 beforeEach(function () {
     if (! Features::canManageTwoFactorAuthentication()) {
         $this->markTestSkipped('Two-factor authentication is not enabled.');
