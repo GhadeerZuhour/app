@@ -7,10 +7,12 @@
                     <li class="breadcrumb-item text-md"><a class="opacity-5 text-dark" href="javascript:;">Pages</a>
                     </li>
                     <li class="breadcrumb-item text-sm text-dark active text-capitalize" aria-current="page">
-                        {{ str_replace('-', ' ', Route::currentRouteName()) }}</li>
+                        {{ str_replace('-', ' ', Route::currentRouteName()) }}
+                    </li>
                 </ol>
                 <h6 class="font-weight-bolder mb-0 text-capitalize">
-                    {{ str_replace('-', ' ', Route::currentRouteName()) }}</h6>
+                    {{ str_replace('-', ' ', Route::currentRouteName()) }}
+                </h6>
             </nav>
             <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4 d-flex justify-content-end" id="navbar">
                 <!-- <div class="nav-item d-flex align-self-end">
@@ -19,6 +21,18 @@
                         Download
                     </a>
                 </div> -->
+                <div class="d-flex align-items-center gap-2">
+                    @if(app()->getLocale() === 'ar')
+                    <a class="btn btn-sm btn-outline-primary" href="{{ route('lang.switch', 'en') }}">
+                        EN
+                    </a>
+                    @else
+                    <a class="btn btn-sm btn-outline-primary" href="{{ route('lang.switch', 'ar') }}">
+                        العربية
+                    </a>
+                    @endif
+                </div>
+
                 <div class="ms-md-3 pe-md-3 d-flex align-items-center">
                     <div class="input-group">
                         <span class="input-group-text text-body"><i class="fas fa-search" aria-hidden="true"></i></span>
@@ -28,7 +42,7 @@
                 <ul class="navbar-nav justify-content-end">
                     <li class="nav-item d-flex align-items-center">
                         <a href="javascript:;" class="nav-link text-body font-weight-bold px-0">
-                           
+
                         </a>
                     </li>
                     <li class="nav-item d-xl-none ps-3 d-flex align-items-center">
@@ -134,4 +148,3 @@
             </div>
         </div>
     </nav>
-

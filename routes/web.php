@@ -3,7 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
-
+use App\Livewire\Accounts\Index as AccountsIndex;
+use App\Livewire\Accounts\Create as AccountsCreate;
 
 Route::middleware('guest')->group(function () {
     Route::view('/login', 'livewire.auth.login')->name('login');
@@ -12,13 +13,25 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+Route::get('/lang/{locale}', function (string $locale) {
+    if (! in_array($locale, ['en', 'ar'])) {
+        abort(404);
+    }
+
+    session(['locale' => $locale]);
+
+    return redirect()->back();
+})->name('lang.switch');
+
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
     
-Route::get('/accounts', fn () => 'Accounts page')
-    ->name('accounts.index');
+
+
+Route::get('/accounts', AccountsIndex::class)->name('accounts.index');
+Route::get('/accounts/create', AccountsCreate::class)->name('accounts.create');
 
     Route::get('/entries', \App\Livewire\Entries\Index::class)
     ->name('entries.index');  

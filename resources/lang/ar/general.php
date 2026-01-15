@@ -5,10 +5,15 @@ return [
     'accounts' => 'الحسابات',
     'entries' => 'القيود',
     'create_entry' => 'إضافة قيد',
-    'amount' => 'المبلغ',
-    'date' => 'التاريخ',
-    'account' => 'الحساب',
-    'payment_method' => 'طريقة الدفع',
+
     'save' => 'حفظ',
     'cancel' => 'إلغاء',
+    'edit' => 'تعديل',
+    'delete' => 'حذف',
+    'actions' => 'الإجراءات',
+
+    'date' => 'التاريخ',
+    'amount' => 'المبلغ',
+    'account' => 'الحساب',
+    'payment_method' => 'طريقة الدفع',
 ];
