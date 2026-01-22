@@ -1,68 +1,48 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
+use Laravel\Fortify\Features;
+use Illuminate\Support\Facades\Route;
+
+use App\Livewire\Entries\Index as EntriesIndex;
 use App\Livewire\Accounts\Index as AccountsIndex;
+use App\Livewire\Entries\Create as EntriesCreate;
 use App\Livewire\Accounts\Create as AccountsCreate;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+use App\Livewire\Admin\Businesses\Index as BusinessIndex;
+use App\Livewire\Admin\Businesses\Create as BusinessCreate;
+use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
+
+
+/*
+|--------------------------------------------------------------------------
+| 1️⃣ Public / Guest Routes (Central)
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware('guest')->group(function () {
     Route::view('/login', 'livewire.auth.login')->name('login');
 });
+
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
 Route::get('/lang/{locale}', function (string $locale) {
-    if (! in_array($locale, ['en', 'ar'])) {
-        abort(404);
-    }
+    abort_unless(in_array($locale, ['en', 'ar']), 404);
 
     session(['locale' => $locale]);
-
     return redirect()->back();
 })->name('lang.switch');
 
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
 
-    
+foreach (config('tenancy.central_domains') as $domain) {
+    Route::domain($domain)->group(function () {
+        require base_path('routes/central.php');
+    });
+}
 
-
-Route::get('/accounts', AccountsIndex::class)->name('accounts.index');
-Route::get('/accounts/create', AccountsCreate::class)->name('accounts.create');
-
-    Route::get('/entries', \App\Livewire\Entries\Index::class)
-    ->name('entries.index');  
-    Route::get('/entries/create', \App\Livewire\Entries\Create::class)
-        ->name('entries.create');
-
-
-Route::middleware(['auth'])->group(function () {
-    
-    Route::get('/billing')->name('billing');
-    Route::get('/profile')->name('profile');
-    Route::get('/tables')->name('tables');
-    Route::get('/static-sign-in')->name('sign-in');
-    Route::get('/static-sign-up')->name('static-sign-up');
-    Route::get('/rtl')->name('rtl');
-    Route::get('/laravel-user-profile')->name('user-profile');
-    Route::get('/laravel-user-management')->name('user-management');
-    Route::redirect('settings', 'settings/profile');
-
-    Volt::route('settings/profile', 'settings.profile')->name('profile.edit');
-    Volt::route('settings/password', 'settings.password')->name('user-password.edit');
-    Volt::route('settings/appearance', 'settings.appearance')->name('appearance.edit');
-
-    Volt::route('settings/two-factor', 'settings.two-factor')
-        ->middleware(
-            when(
-                Features::canManageTwoFactorAuthentication()
-                    && Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword'),
-                ['password.confirm'],
-                [],
-            ),
-        )
-        ->name('two-factor.show');
+// أي دومين غير مركزي = tenant (subdomain)
+Route::group([], function () {
+    require base_path('routes/tenant.php');
 });
