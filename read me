@@ -1,0 +1,16 @@
+php artisan entries:archive 2025-12
+Tenant محدد:
+
+bash
+Copy code
+php artisan entries:archive 2025-12 --tenant=2
+حساب واحد:
+
+bash
+Copy code
+php artisan entries:archive 2025-12 --account=1
+إعادة الأرشفة بالقوة:
+
+bash
+Copy code
+php artisan entries:archive 2025-12 --force

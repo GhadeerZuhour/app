@@ -12,7 +12,6 @@ use Carbon\Carbon;
 use App\Models\Account;
 use App\Models\Entry;
 use App\Models\ZeroBalance;
-use App\Models\CheckDetail;
 
 class Create extends Component
 {

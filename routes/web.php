@@ -14,7 +14,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/lang/{locale}', function (string $locale) {
-    if (! in_array($locale, ['en', 'ar'])) {
+    if (!in_array($locale, ['en', 'ar'])) {
         abort(404);
     }
 
@@ -27,20 +27,27 @@ Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-    
+
 
 
 Route::get('/accounts', AccountsIndex::class)->name('accounts.index');
 Route::get('/accounts/create', AccountsCreate::class)->name('accounts.create');
 
-    Route::get('/entries', \App\Livewire\Entries\Index::class)
-    ->name('entries.index');  
-    Route::get('/entries/create', \App\Livewire\Entries\Create::class)
-        ->name('entries.create');
+
 
 
 Route::middleware(['auth'])->group(function () {
+
+
+
+    Route::get('/accounts', AccountsIndex::class)->name('accounts.index');
+    Route::get('/accounts/create', AccountsCreate::class)->name('accounts.create');
     
+    Route::get('/entries', \App\Livewire\Entries\Index::class)
+        ->name('entries.index');
+    Route::get('/entries/create', \App\Livewire\Entries\Create::class)
+        ->name('entries.create');
+
     Route::get('/billing')->name('billing');
     Route::get('/profile')->name('profile');
     Route::get('/tables')->name('tables');
@@ -59,7 +66,7 @@ Route::middleware(['auth'])->group(function () {
         ->middleware(
             when(
                 Features::canManageTwoFactorAuthentication()
-                    && Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword'),
+                && Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword'),
                 ['password.confirm'],
                 [],
             ),
