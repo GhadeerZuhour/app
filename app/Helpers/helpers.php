@@ -2,17 +2,18 @@
 
 use Illuminate\Support\Facades\Auth;
 
-if (! function_exists('tenant_id')) {
-    function tenant_id()
-    {
-        if (!Auth::check()) {
-            return null;
-        }
 
-        $user = Auth::user();
+function tenant_id(): ?int
+{
+    $u = Auth::user();
+    if (!$u) return null;
 
-        return $user->role === 'subscriber'
-            ? $user->id
-            : $user->parent_id;
+    // إذا المستخدم subscriber فهو نفسه الـ tenant
+    if (($u->role ?? null) === 'subscriber') {
+        return $u->id;
     }
+
+    // إذا admin/staff تابع لمشترك (tenant)
+    return $u->tenant_id ?? $u->parent_id ?? $u->id;
 }
+

@@ -4,14 +4,6 @@ use Livewire\Volt\Volt;
 use Laravel\Fortify\Features;
 use Illuminate\Support\Facades\Route;
 
-use App\Livewire\Entries\Index as EntriesIndex;
-use App\Livewire\Accounts\Index as AccountsIndex;
-use App\Livewire\Entries\Create as EntriesCreate;
-use App\Livewire\Accounts\Create as AccountsCreate;
-use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
-use App\Livewire\Admin\Businesses\Index as BusinessIndex;
-use App\Livewire\Admin\Businesses\Create as BusinessCreate;
-use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 
 /*
