@@ -27,7 +27,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css">
-   @endif 
+    @endif
     <style>
         /* Sidebar spacing (LTR default) */
         .main-content {
@@ -105,6 +105,12 @@
 
 <body class="g-sidenav-show bg-gray-100">
 
+    @if (session()->has('success'))
+    <div class="alert alert-success alert-dismissible fade show mx-3 mt-3" role="alert">
+        {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    @endif
     {{ $slot }}
 
     {{-- Core JS --}}

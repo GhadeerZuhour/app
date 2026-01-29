@@ -2,30 +2,25 @@
 
 namespace App\Models;
 
+use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
 
-class Tenant extends BaseTenant
+class Tenant extends BaseTenant implements TenantWithDatabase
 {
     use HasDomains, HasDatabase;
+
     protected $fillable = [
-        'id', // UUID by default
+        'id',
         'user_id',
-        'business_name',
-        'business_type',
-        'business_phone',
-        'business_address',
-        'subscription_period',
-        'subscription_ends_at',
-        'is_active',
         'data',
+        'is_active',
     ];
 
     protected $casts = [
-        'subscription_ends_at' => 'date',
-        'is_active' => 'boolean',
         'data' => 'array',
+        'is_active' => 'boolean',
     ];
 
     public function owner()

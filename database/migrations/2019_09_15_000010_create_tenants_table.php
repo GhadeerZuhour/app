@@ -16,12 +16,18 @@ class CreateTenantsTable extends Migration
     public function up(): void
     {
         Schema::create('tenants', function (Blueprint $table) {
-            $table->string('id')->primary();
+            $table->uuid('id')->primary();
 
-            // your custom columns may go here
+            // owner (subscriber user)
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+
+            // dynamic business data
+            $table->json('data')->nullable();
+
+            // status
+            $table->boolean('is_active')->default(true);
 
             $table->timestamps();
-            $table->json('data')->nullable();
         });
     }
 
