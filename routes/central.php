@@ -15,10 +15,10 @@ Route::view('/dashboard', 'dashboard')
     ->name('dashboard');
 
 // Admin
-Route::get('/admin/businesses', \App\Livewire\Admin\Businesses\Index::class)
+Route::get('/admin/tenants', \App\Livewire\Admin\Tenants\Index::class)
     ->middleware(['auth','verified'])
-    ->name('admin.businesses.index');
+    ->name('admin.tenants.index');
 
-Route::get('/admin/businesses/create', \App\Livewire\Admin\Businesses\Create::class)
+Route::get('/admin/tenants/create', \App\Livewire\Admin\Tenants\Create::class)
     ->middleware(['auth','verified'])
-    ->name('admin.businesses.create');
+    ->name('admin.tenants.create');

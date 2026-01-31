@@ -21,12 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             SetLocale::class,
         ]);
-    })
-    ->withMiddleware(function (Middleware $middleware) {
-           $middleware->alias([
+
+        $middleware->alias([
             'tenant.active' => EnsureTenantIsActive::class,
         ]);
-     
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

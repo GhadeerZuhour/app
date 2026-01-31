@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Businesses;
+namespace App\Livewire\Admin\Tenants;
 
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -20,7 +20,7 @@ class Index extends Component
 
     public function render()
     {
-        $businesses = Tenant::query()
+        $tenants = Tenant::query()
             ->with('owner:id,name,email')
             ->when($this->search, function ($q) {
                 $q->where('business_name', 'like', "%{$this->search}%")
@@ -32,7 +32,7 @@ class Index extends Component
             ->latest()
             ->paginate(10);
 
-        return view('livewire.admin.businesses.index', compact('businesses'));
+        return view('livewire.admin.tenants.index', compact('tenants'));
          
     }
 }

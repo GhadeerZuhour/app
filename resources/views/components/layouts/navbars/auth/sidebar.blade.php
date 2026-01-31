@@ -56,10 +56,10 @@ $brandName = $isTenantApp
                 </a>
             </li>
 
-            {{-- Tenants / Businesses --}}
+            {{-- Tenants / tenants --}}
             <li class="nav-item pb-2">
-                <a class="nav-link {{ request()->routeIs('admin.businesses.*') ? 'active' : '' }}"
-                    href="{{ route('admin.businesses.index') }}">
+                <a class="nav-link {{ request()->routeIs('admin.tenants.*') ? 'active' : '' }}"
+                    href="{{ route('admin.tenants.index') }}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <i class="ni ni-building text-dark text-sm opacity-10"></i>
@@ -70,8 +70,8 @@ $brandName = $isTenantApp
 
             {{-- Create Tenant --}}
             <li class="nav-item pb-2">
-                <a class="nav-link {{ request()->routeIs('admin.businesses.create') ? 'active' : '' }}"
-                    href="{{ route('admin.businesses.create') }}">
+                <a class="nav-link {{ request()->routeIs('admin.tenants.create') ? 'active' : '' }}"
+                    href="{{ route('admin.tenants.create') }}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <i class="ni ni-fat-add text-dark text-sm opacity-10"></i>

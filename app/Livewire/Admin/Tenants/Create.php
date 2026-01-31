@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Businesses;
+namespace App\Livewire\Admin\Tenants;
 
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
@@ -92,7 +92,7 @@ class Create extends Component
         logger()->info('CreateTenant: migrate output '.\Artisan::output());
 
         session()->flash('success', "Tenant created successfully: {$domain}");
-        return redirect()->route('admin.businesses.index');
+        return redirect()->route('admin.tenants.index');
 
     } catch (\Throwable $e) {
         logger()->error('CreateTenant FAILED: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
@@ -104,6 +104,6 @@ class Create extends Component
 
     public function render()
     {
-        return view('livewire.admin.businesses.create');
+        return view('livewire.admin.tenants.create');
     }
 }

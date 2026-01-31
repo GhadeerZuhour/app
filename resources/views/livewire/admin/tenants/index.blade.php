@@ -10,8 +10,8 @@ new class extends Component
 
 <div class="container py-4">
     <div class="d-flex justify-content-between mb-3">
-        <h4>Businesses</h4>
-        <a href="{{ route('admin.businesses.create') }}" class="btn btn-dark">
+        <h4>tenants</h4>
+        <a href="{{ route('admin.tenants.create') }}" class="btn btn-dark">
             + New Business
         </a>
     </div>
@@ -32,7 +32,7 @@ new class extends Component
         </thead>
 
         <tbody>
-        @foreach($businesses as $tenant)
+        @foreach($tenants as $tenant)
             <tr>
                 <td>{{ $tenant->business_name }}</td>
 
@@ -62,5 +62,5 @@ new class extends Component
         </tbody>
     </table>
 
-    {{ $businesses->links() }}
+    {{ $tenants->links() }}
 </div>

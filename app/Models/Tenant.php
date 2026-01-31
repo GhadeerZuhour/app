@@ -21,6 +21,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     protected $casts = [
         'data' => 'array',
         'is_active' => 'boolean',
+         'subscription_ends_at' => 'date',
     ];
 
     public function owner()

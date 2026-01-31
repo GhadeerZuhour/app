@@ -1,5 +1,5 @@
 <div class="container py-4">
-    <h4>Create Business</h4>
+    <h4>Create Tenant</h4>
 
     <div class="row g-3">
         <div class="col-md-6">
@@ -56,7 +56,7 @@
 
         <div class="col-12">
             <button wire:click="save" class="btn btn-dark">
-                Create Business
+                Create Tenant
             </button>
         </div>
         @error('create')
