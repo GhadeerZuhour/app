@@ -5,6 +5,8 @@ namespace App\Livewire\Admin\Tenants;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Tenant;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Str;
 
 class Index extends Component
 {
@@ -12,27 +14,51 @@ class Index extends Component
 
     public string $search = '';
 
-    public function toggleActive(string $id)
+    public function updatingSearch()
     {
-        $tenant = Tenant::findOrFail($id);
-        $tenant->update(['is_active' => ! $tenant->is_active]);
+        $this->resetPage();
+    }
+
+    public function migrate(string $tenantId)
+    {
+        Artisan::call('tenants:migrate', [
+            '--tenants' => [$tenantId],
+            '--path'    => 'database/migrations/tenant',
+            '--force'   => true,
+        ]);
+
+        session()->flash('success', 'Tenant migrations executed');
+    }
+
+    public function toggle(string $tenantId)
+    {
+        $tenant = Tenant::findOrFail($tenantId);
+
+        $active = $tenant->subscription_is_active; // ✅ accessor
+        $tenant->update([
+            'data->subscription->is_active' => ! $active,
+        ]);
+
+        session()->flash('success', 'Tenant status updated');
+    }
+
+    public function delete(string $tenantId)
+    {
+        Tenant::findOrFail($tenantId)->delete();
+        session()->flash('success', 'Tenant deleted');
     }
 
     public function render()
     {
-        $tenants = Tenant::query()
-            ->with('owner:id,name,email')
-            ->when($this->search, function ($q) {
-                $q->where('business_name', 'like', "%{$this->search}%")
-                  ->orWhereHas('owner', fn ($u) =>
-                      $u->where('name','like',"%{$this->search}%")
-                        ->orWhere('email','like',"%{$this->search}%")
-                  );
-            })
-            ->latest()
-            ->paginate(10);
+        $q = Tenant::query()->with('domains')->latest();
 
-        return view('livewire.admin.tenants.index', compact('tenants'));
-         
+        if ($this->search !== '') {
+            $s = Str::lower(trim($this->search));
+            $q->whereRaw("LOWER(COALESCE(data->>'tenant_name','')) LIKE ?", ["%{$s}%"]);
+        }
+
+        return view('livewire.admin.tenants.index', [
+            'tenants' => $q->paginate(10),
+        ]);
     }
 }

@@ -28,9 +28,9 @@
         </div>
 
         <div class="col-md-6">
-            <input class="form-control" placeholder="Business name"
-                wire:model.defer="business_name">
-            @error('business_name')
+            <input class="form-control" placeholder="Tenant name"
+                wire:model.defer="tenant_name">
+            @error('tenant_name')
                 <div class="text-danger small">{{ $message }}</div>
             @enderror
         </div>

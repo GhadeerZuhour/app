@@ -2,107 +2,95 @@
 
 namespace App\Livewire\Admin\Tenants;
 
-use Livewire\Component;
+use App\Models\Tenant;
+use App\Models\User;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
-use App\Models\User;
-use App\Models\Tenant;
-use Illuminate\Support\Facades\Artisan;
+use Livewire\Component;
 
 class Create extends Component
 {
     public string $owner_name = '';
+
     public string $owner_email = '';
+
     public string $password = '';
 
-    public string $business_name = '';
-    public ?string $business_type = null;
-    public ?string $business_phone = null;
-    public ?string $business_address = null;
+    public string $tenant_name = '';
+
+    public ?string $tenant_type = null;
 
     public string $subscription_period = 'monthly';
+
     public ?string $subscription_ends_at = null;
+
     public bool $is_active = true;
 
-   public function save()
-{
-    logger()->info('CreateTenant: save() start');
+    public function save(): RedirectResponse
+    {
+        $this->validate([
+            'owner_name' => 'required',
+            'owner_email' => 'required|email|unique:users,email',
+            'tenant_name' => 'required',
+        ]);
 
-    $data = $this->validate([
-        'owner_name' => ['required','string','max:255'],
-        'owner_email' => ['required','email','unique:users,email'],
-        'password' => ['required','min:8'],
-        'business_name' => ['required','string','max:255'],
-        'business_type' => ['nullable','string','max:255'],
-        'subscription_period' => ['required','in:monthly,yearly'],
-        'subscription_ends_at' => ['nullable','date'],
-        'is_active' => ['boolean'],
-    ]);
+        // 1) Create user (subscriber)
+        $user = User::create([
+            'name' => $this->owner_name,
+            'email' => $this->owner_email,
+            'password' => Hash::make(Str::random(32)), // will be reset by email
+            'role' => 'subscriber',
+        ]);
 
-    $tenant = null;
-    $user = null;
+        // 2) Create tenant record (central DB)
+        $tenant = Tenant::create([
+            'tenant_name' => $this->tenant_name,
+            'tenant_type' => $this->tenant_type,
+            'subscription' => [
+                'period' => $this->subscription_period,
+                'ends_at' => $this->subscription_ends_at,
+                'is_active' => $this->is_active,
+            ],
+        ]);
 
-    try {
-        // ✅ transaction فقط للـ central records
-        [$tenant, $user, $domain] = \DB::transaction(function () use ($data) {
+        // Link user -> tenant
+        $user->update(['tenant_id' => $tenant->id]);
 
-            $user = User::create([
-                'name' => $data['owner_name'],
-                'email' => $data['owner_email'],
-                'password' => Hash::make($data['password']),
-                'role' => 'subscriber',
-            ]);
+        // 3) Create domain
+        $slug = Str::slug($this->tenant_name).'-'.Str::lower(Str::random(4));
+        $domain = "{$slug}.localhost";
 
-            $tenant = Tenant::create([
-                'id' => (string) \Str::uuid(),
-                'user_id' => $user->id,
-                'is_active' => $data['is_active'],
-                'data' => [
-                    'business_name' => $data['business_name'],
-                    'business_type' => $data['business_type'],
-                    'subscription_period' => $data['subscription_period'],
-                    'subscription_ends_at' => $data['subscription_ends_at'],
-                ],
-            ]);
+        $tenant->domains()->create(['domain' => $domain]);
 
-            $slug = \Str::slug($data['business_name']).'-'.\Str::lower(\Str::random(4));
-            $domain = "{$slug}.localhost";
-
-            $tenant->domains()->create(['domain' => $domain]);
-
-            return [$tenant, $user, $domain];
+        // 4) ✅ Create tenant database (PostgreSQL-safe: no transaction)
+        DB::connection(config('tenancy.database.central_connection'))->transaction(function () {
+            // transaction only for central records (safe)
         });
 
-        logger()->info('CreateTenant: central records ok', ['tenant_id' => $tenant->id]);
-
-        // ✅ PostgreSQL: CREATE DATABASE خارج أي transaction
+        // Create DB OUTSIDE transaction:
         $tenant->database()->makeCredentials();
-        $tenant->database()->manager()->createDatabase($tenant);
+        $tenant->database()->manager()->createDatabase($tenant);  // ✅ ينشئ قاعدة البيانات
 
-        logger()->info('CreateTenant: database created', ['tenant_id' => $tenant->id]);
-
-        // ✅ migrate tenants (أفضل من migrate العادي)
-        \Artisan::call('tenants:migrate', [
+        // ✅ Run tenant migrations
+        Artisan::call('tenants:migrate', [
             '--tenants' => [$tenant->id],
             '--path' => 'database/migrations/tenant',
             '--force' => true,
         ]);
+        // 6) Send reset password email
+        Password::sendResetLink(['email' => $user->email]);
 
-        logger()->info('CreateTenant: migrate output '.\Artisan::output());
+        session()->flash('success', "Tenant created: {$domain} — reset email sent.");
 
-        session()->flash('success', "Tenant created successfully: {$domain}");
         return redirect()->route('admin.tenants.index');
-
-    } catch (\Throwable $e) {
-        logger()->error('CreateTenant FAILED: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
-        $this->addError('create', $e->getMessage());
-        return;
     }
-}
 
-
-    public function render()
+    public function render(): View
     {
         return view('livewire.admin.tenants.create');
     }

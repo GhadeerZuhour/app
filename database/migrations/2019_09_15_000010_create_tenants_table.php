@@ -10,22 +10,14 @@ class CreateTenantsTable extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
     public function up(): void
     {
         Schema::create('tenants', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->uuid(column: 'id')->primary();
 
-            // owner (subscriber user)
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-
-            // dynamic business data
+            // Stancl standard
             $table->json('data')->nullable();
-
-            // status
-            $table->boolean('is_active')->default(true);
 
             $table->timestamps();
         });
@@ -33,8 +25,6 @@ class CreateTenantsTable extends Migration
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down(): void
     {
