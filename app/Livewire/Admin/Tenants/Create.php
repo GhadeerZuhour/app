@@ -5,7 +5,7 @@ namespace App\Livewire\Admin\Tenants;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
+
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -31,7 +31,7 @@ class Create extends Component
 
     public bool $is_active = true;
 
-    public function save(): RedirectResponse
+    public function save()
     {
         $this->validate([
             'owner_name' => 'required',
@@ -87,7 +87,7 @@ class Create extends Component
 
         session()->flash('success', "Tenant created: {$domain} — reset email sent.");
 
-        return redirect()->route('admin.tenants.index');
+      return redirect()->route('admin.tenants.index');
     }
 
     public function render(): View

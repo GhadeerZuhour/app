@@ -1,6 +1,6 @@
 <div>
     @if (session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
+    <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -8,8 +8,8 @@
 
         <div class="d-flex gap-2">
             <input type="text" class="form-control" style="width: 260px"
-                   placeholder="Search tenant name..."
-                   wire:model.live="search">
+                placeholder="Search tenant name..."
+                wire:model.live="search">
             <a class="btn btn-primary" href="{{ route('admin.tenants.create') }}">Add Tenant</a>
         </div>
     </div>
@@ -28,102 +28,86 @@
                 </thead>
 
                 <tbody>
-                @foreach ($tenants as $tenant)
+                    @foreach ($tenants as $tenant)
                     @php
-                        $name = $tenant->data['tenant_name'] ?? '—';
-                        $isActive = $tenant->data['subscription']['is_active'] ?? false;
-                        $endsAt = $tenant->subscription_ends_at?->format('Y-m-d') ?? 'Lifetime';
-                        $domain = $tenant->domains()->first()?->domain;
+                    $name = $tenant->data['tenant_name'] ?? '—';
+                    $isActive = $tenant->data['subscription']['is_active'] ?? false;
+                    $endsAt = $tenant->subscription_ends_at?->format('Y-m-d') ?? 'Lifetime';
+                    $domain = $tenant->domains()->first()?->domain;
+                    $sub = $tenant->subscriptionPeriod;
                     @endphp
 
-                    
+{{ json_encode($tenant->data) }}
 
                     <tr>
-                       
 
-                       
+
 
                         <td>
-    <div class="fw-semibold">{{ $tenant->name }}</div>
-    <div class="text-muted text-xs">{{ $tenant->id }}</div>
-</td>
+                            <div class="fw-semibold">{{ $tenant->name }}</div>
+                            <div class="text-muted text-xs">{{ $tenant->id }}</div>
+                        </td>
 
-<td>{{ $tenant->domain ?? '—' }}</td>
+                        <td>{{ $tenant->domain ?? '—' }}</td>
 
-<td>
-    @php
-        $status = $tenant->subscription_status;
-        $class = $status === 'ACTIVE' ? 'success' : ($status === 'EXPIRED' ? 'danger' : 'secondary');
-    @endphp
+                        <td>
+                            @php
+                            $status = $tenant->subscription_status;
+                            $class = $status === 'ACTIVE' ? 'success' : ($status === 'EXPIRED' ? 'danger' : 'secondary');
+                            @endphp
 
-    <span class="badge bg-{{ $class }}">
-        {{ $status }}
-    </span>
-</td>
+                            <span class="badge bg-{{ $class }}">
+                                {{ $status }}
+                            </span>
+                        </td>
 
-<td>
-    {{ $tenant->subscription_ends_at?->format('Y-m-d') ?? 'Lifetime' }}
-</td>
+                        <td>
+                            {{ $tenant->ends_at_label  }} {{ $tenant->subscription_period }}
 
 
-                      <td class="text-end">
-    <div class="d-flex justify-content-end gap-2">
+                        </td>
 
-        {{-- View tenant --}}
-        <a href="{{ route('admin.tenants.show', $tenant->id) }}"
-           class="btn btn-icon-only btn-outline-primary btn-sm"
-           data-bs-toggle="tooltip" title="View Tenant">
-            <i class="ni ni-eye"></i>
-        </a>
 
-        {{-- Login to tenant (by domain) --}}
-        @php
-            $domain = optional($tenant->domains->first())->domain;
-        @endphp
-        @if($domain)
-        <a href="http://{{ $domain }}:8000"
-           target="_blank"
-           class="btn btn-icon-only btn-outline-info btn-sm"
-           data-bs-toggle="tooltip" title="Login as Tenant">
-            <i class="ni ni-bold-right"></i>
-        </a>
-        @endif
+                        <td class="text-end">
+                            <div class="d-flex justify-content-end gap-2">
 
-        {{-- Run tenant migrations --}}
-        <button wire:click="migrate('{{ $tenant->id }}')"
-                class="btn btn-icon-only btn-outline-warning btn-sm"
-                data-bs-toggle="tooltip" title="Run Migrations">
-            <i class="ni ni-settings"></i>
-        </button>
+                                {{-- View tenant --}}
+                                <a href="{{ route('admin.tenants.show', $tenant->id) }}"
+                                    class="btn btn-icon-only btn-outline-primary "
+                                    data-bs-toggle="tooltip" title="View Tenant">
+                                    <i class="ni ni-zoom-split-in"></i>
+                                </a>
 
-        {{-- Activate / Suspend --}}
-        @if(data_get($tenant->data, 'subscription.is_active'))
-            <button wire:click="toggle('{{ $tenant->id }}')"
-                    class="btn btn-icon-only btn-outline-success btn-sm"
-                    data-bs-toggle="tooltip" title="Suspend Tenant">
-                <i class="ni ni-button-power"></i>
-            </button>
-        @else
-            <button wire:click="toggle('{{ $tenant->id }}')"
-                    class="btn btn-icon-only btn-outline-secondary btn-sm"
-                    data-bs-toggle="tooltip" title="Activate Tenant">
-                <i class="ni ni-check-bold"></i>
-            </button>
-        @endif
 
-        {{-- Delete --}}
-        <button wire:click="delete('{{ $tenant->id }}')"
-                onclick="confirm('Are you sure?') || event.stopImmediatePropagation()"
-                class="btn btn-icon-only btn-outline-danger btn-sm"
-                data-bs-toggle="tooltip" title="Delete Tenant">
-            <i class="ni ni-fat-remove"></i>
-        </button>
+                                {{-- Activate / Suspend --}}
+                                @if(data_get($tenant->data, 'subscription.is_active'))
+                                <button wire:click="toggle('{{ $tenant->id }}')"
+                                    class="btn btn-icon-only btn-outline-success "
+                                    data-bs-toggle="tooltip" title="Suspend Tenant">
+                                    <i class="ni ni-button-power"></i>
+                                </button>
+                                @else
+                                <button wire:click="toggle('{{ $tenant->id }}')"
+                                    class="btn btn-icon-only btn-outline-secondary "
+                                    data-bs-toggle="tooltip" title="Activate Tenant">
+                                    <i class="ni ni-check-bold"></i>
+                                </button>
+                                @endif
 
-    </div>
-</td>
+
+                                {{-- Delete --}}
+                                <button wire:click="delete('{{ $tenant->id }}')"
+                                    onclick="confirm('Are you sure?') || event.stopImmediatePropagation()"
+                                    class="btn btn-icon-only btn-outline-danger "
+                                    data-bs-toggle="tooltip" title="Delete Tenant">
+                                    <i class="ni ni-fat-remove"></i>
+                                </button>
+
+                            </div>
+                        </td>
 
                     </tr>
-                @endforeach
+                    @endforeach
                 </tbody>
             </table>
         </div>

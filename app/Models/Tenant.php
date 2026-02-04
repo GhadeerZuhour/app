@@ -51,21 +51,51 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
         return $date ? \Carbon\Carbon::parse($date) : null;
     }
+
+    protected function endsAtLabel(): Attribute
+    {
+        return Attribute::get(function () {
+            $raw = data_get($this->data, 'subscription.ends_at');
+
+            // 1) stored
+            if ($raw) {
+                try {
+                    return Carbon::parse($raw)->format('Y-m-d');
+                } catch (\Throwable) {
+                    // ignore
+                }
+            }
+
+            // 2) calculated
+            $base = $this->created_at ? Carbon::parse($this->created_at) : now();
+            $period = data_get($this->data, 'subscription.period', 'monthly');
+
+            $endsAt = $period === 'yearly'
+                ? $base->copy()->addYear()
+                : $base->copy()->addMonth();
+
+            return $endsAt->format('Y-m-d');
+        });
+    }
     protected function name(): Attribute
     {
-        return Attribute::get(fn () => data_get($this->data, 'tenant_name', '—'));
+        return Attribute::get(fn() => data_get($this->data, 'tenant_name', '—'));
     }
 
     // Period: monthly|yearly
     protected function subscriptionPeriod(): Attribute
     {
-        return Attribute::get(fn () => data_get($this->data, 'subscription.period', 'monthly'));
+        return Attribute::get(function () {
+            $period = data_get($this->data ?? [], 'subscription.period');
+            return in_array($period, ['monthly', 'yearly'], true) ? $period : 'monthly';
+        });
     }
+
 
     // Is active default true
     protected function subscriptionIsActive(): Attribute
     {
-        return Attribute::get(fn () => (bool) data_get($this->data, 'subscription.is_active', true));
+        return Attribute::get(fn() => (bool) data_get($this->data, 'subscription.is_active', true));
     }
 
     // Ends At: from data OR calculated from created_at + period
@@ -92,6 +122,8 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         });
     }
 
+
+
     // Status: ACTIVE | SUSPENDED | EXPIRED
     protected function subscriptionStatus(): Attribute
     {
@@ -109,7 +141,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     // Domain (first domain)
     protected function domain(): Attribute
     {
-        return Attribute::get(fn () => optional($this->domains->first())->domain);
+        return Attribute::get(fn() => optional($this->domains->first())->domain);
     }
 
 
