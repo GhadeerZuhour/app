@@ -14,10 +14,14 @@ class CreateTenantsTable extends Migration
     public function up(): void
     {
         Schema::create('tenants', function (Blueprint $table) {
-            $table->uuid(column: 'id')->primary();
+            $table->uuid('id')->primary();
 
-            // Stancl standard
-            $table->json('data')->nullable();
+            // IMPORTANT: jsonb + default {} + NOT NULL (Postgres)
+            $table->jsonb('data')->default('{}')->nullable(false);
+
+            // Optional: if you want also tenancy_db_name as a real column, keep it separate
+            // (stancl sometimes stores it in data, sometimes as column depending on your edits)
+            // $table->string('tenancy_db_name')->nullable()->unique();
 
             $table->timestamps();
         });

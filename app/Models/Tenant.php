@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
-
-use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Support\Carbon;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
@@ -21,9 +20,93 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     protected $fillable = ['id', 'data'];
 
+    protected $attributes = [
+        'data' => '{}',
+    ];
+
     protected $casts = [
         'data' => 'array',
     ];
+
+    public function dataArray(): array
+    {
+        $raw = $this->getRawOriginal('data');
+
+        if (is_array($raw)) {
+            return $raw;
+        }
+
+        if (is_string($raw) && $raw !== '') {
+            $decoded = json_decode($raw, true);
+
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        if (! $this->exists) {
+            return [];
+        }
+
+        $raw = $this->newQueryWithoutScopes()
+            ->whereKey($this->getKey())
+            ->value('data');
+
+        if (is_array($raw)) {
+            return $raw;
+        }
+
+        if (is_string($raw) && $raw !== '') {
+            $decoded = json_decode($raw, true);
+
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        return [];
+    }
+
+    public function setDataPath(string $path, mixed $value): void
+    {
+        $data = $this->dataArray();
+
+        data_set($data, $path, $value);
+
+        if (! $this->exists) {
+            $this->setAttribute('data', $data);
+
+            return;
+        }
+
+        $this->newQueryWithoutScopes()
+            ->whereKey($this->getKey())
+            ->update(['data' => json_encode($data)]);
+
+        $this->setAttribute('data', $data);
+        $this->syncOriginalAttribute('data');
+    }
+
+    protected function data(): Attribute
+    {
+        return Attribute::get(function ($value) {
+            if (is_array($value)) {
+                return $value;
+            }
+
+            $raw = $this->getRawOriginal('data');
+
+            if (is_string($raw) && $raw !== '') {
+                $decoded = json_decode($raw, true);
+
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    return $decoded;
+                }
+            }
+
+            return [];
+        });
+    }
 
     public function getTenantNameAttribute()
     {
@@ -77,9 +160,10 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             return $endsAt->format('Y-m-d');
         });
     }
+
     protected function name(): Attribute
     {
-        return Attribute::get(fn() => data_get($this->data, 'tenant_name', '—'));
+        return Attribute::get(fn () => data_get($this->data, 'tenant_name', '—'));
     }
 
     // Period: monthly|yearly
@@ -87,15 +171,15 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     {
         return Attribute::get(function () {
             $period = data_get($this->data ?? [], 'subscription.period');
+
             return in_array($period, ['monthly', 'yearly'], true) ? $period : 'monthly';
         });
     }
 
-
     // Is active default true
     protected function subscriptionIsActive(): Attribute
     {
-        return Attribute::get(fn() => (bool) data_get($this->data, 'subscription.is_active', true));
+        return Attribute::get(fn () => (bool) data_get($this->data, 'subscription.is_active', true));
     }
 
     // Ends At: from data OR calculated from created_at + period
@@ -114,15 +198,14 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
             // If not stored, calculate from created_at
             $base = $this->created_at ? Carbon::parse($this->created_at) : now();
+
             return match ($this->subscription_period) {
                 'monthly' => $base->copy()->addMonth(),
-                'yearly'  => $base->copy()->addYear(),
-                default   => null,
+                'yearly' => $base->copy()->addYear(),
+                default => null,
             };
         });
     }
-
-
 
     // Status: ACTIVE | SUSPENDED | EXPIRED
     protected function subscriptionStatus(): Attribute
@@ -141,9 +224,8 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     // Domain (first domain)
     protected function domain(): Attribute
     {
-        return Attribute::get(fn() => optional($this->domains->first())->domain);
+        return Attribute::get(fn () => optional($this->domains->first())->domain);
     }
-
 
     public function getOwnerIdAttribute()
     {
