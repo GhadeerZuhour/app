@@ -3,11 +3,14 @@
 namespace App\Livewire\Admin\Tenants;
 
 use App\Models\Tenant;
+use App\Models\TenantMeta;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Livewire\Component;
 use Throwable;
@@ -15,99 +18,87 @@ use Throwable;
 class Create extends Component
 {
     public string $owner_name = '';
-
     public string $owner_email = '';
-
     public string $password = '';
 
     public string $tenant_name = '';
-
     public ?string $tenant_type = null;
 
     public string $subscription_period = 'monthly';
-
     public ?string $subscription_ends_at = null;
 
     public bool $is_active = true;
 
-    public function save(): void
+    public function save()
     {
         $this->validate([
-            'owner_name' => 'required|string|max:255',
-            'owner_email' => 'required|email|max:255|unique:users,email',
-            'password' => 'nullable|string|min:8',
-            'tenant_name' => 'required|string|max:255',
-            'tenant_type' => 'nullable|string|max:255',
+            'owner_name'          => 'required|string|min:2',
+            'owner_email'         => 'required|email|unique:users,email',
+            'tenant_name'         => 'required|string|min:2',
             'subscription_period' => 'required|in:monthly,yearly',
-            'subscription_ends_at' => 'nullable|date_format:Y-m-d',
-            'is_active' => 'boolean',
         ]);
 
-        $user = null;
-        $tenant = null;
+        DB::beginTransaction();
 
         try {
-            $generatedPassword = $this->password === '';
-            $password = $generatedPassword ? Str::random(32) : $this->password;
-
+            // 1) Create owner user
             $user = User::create([
-                'name' => $this->owner_name,
-                'email' => $this->owner_email,
-                'password' => Hash::make($password),
-                'role' => 'subscriber',
+                'name'     => $this->owner_name,
+                'email'    => $this->owner_email,
+                'password' => Hash::make($this->password ?: Str::random(32)),
+                'role'     => 'subscriber',
             ]);
 
-            $tenant = Tenant::create([
-                'tenant_name' => $this->tenant_name,
-                'tenant_type' => $this->tenant_type,
-                'subscription' => [
-                    'period' => $this->subscription_period,
-                    'ends_at' => $this->subscription_ends_at,
-                    'is_active' => $this->is_active,
-                ],
+            // 2) Create tenant (Stancl-owned table) — بدون data/profile/owner/subscription
+            $tenant = Tenant::create();
+
+            // 3) Store our business data in tenant_meta (OUR table)
+            TenantMeta::create([
+                'tenant_id'            => $tenant->id,
+                'name'                 => $this->tenant_name,
+                'type'                 => $this->tenant_type,
+                'owner_user_id'        => $user->id,
+                'owner_email'          => $user->email,
+                'subscription_period'  => $this->subscription_period,
+                'subscription_ends_at' => $this->subscription_ends_at,
+                'is_active'            => (bool) $this->is_active,
             ]);
 
-            $user->tenant_id = $tenant->id;
-            $user->save();
+            // 4) Link user -> tenant_id (if exists)
+            if (Schema::hasColumn('users', 'tenant_id')) {
+                $user->update(['tenant_id' => $tenant->id]);
+            }
 
-            $slug = Str::slug($this->tenant_name).'-'.Str::lower(Str::random(4));
+            // 5) Domain
+            $slug = Str::slug($this->tenant_name) . '-' . Str::lower(Str::random(4));
             $domain = "{$slug}.localhost";
-
             $tenant->domains()->create(['domain' => $domain]);
 
+            // 6) Create tenant DB name
             $tenant->database()->makeCredentials();
+            $tenant->save(); // saves tenancy_db_name
+
+            DB::commit();
+
+            // 7) Create DB + migrate
             $tenant->database()->manager()->createDatabase($tenant);
 
             Artisan::call('tenants:migrate', [
                 '--tenants' => [$tenant->id],
-                '--path' => 'database/migrations/tenant',
-                '--force' => true,
+                '--path'    => 'database/migrations/tenant',
+                '--force'   => true,
             ]);
 
-            if ($generatedPassword) {
-                Password::sendResetLink(['email' => $user->email]);
-                session()->flash('success', "Tenant created: {$domain} � reset email sent.");
-            } else {
-                session()->flash('success', "Tenant created: {$domain}.");
-            }
+            // 8) Send reset password
+            Password::sendResetLink(['email' => $user->email]);
 
-            $this->redirectRoute('admin.tenants.index');
-
-            return;
-        } catch (Throwable $exception) {
-            if ($tenant) {
-                $tenant->domains()->delete();
-                $tenant->delete();
-            }
-
-            if ($user) {
-                $user->delete();
-            }
-
-            report($exception);
-            $this->addError('create', 'Failed to create tenant. Please try again.');
-
-            return;
+            session()->flash('success', "Tenant created: {$domain} — reset email sent.");
+            return $this->redirectRoute('admin.tenants.index');
+        } catch (Throwable $e) {
+            DB::rollBack();
+            report($e);
+            $this->addError('create', $e->getMessage());
+            return null;
         }
     }
 

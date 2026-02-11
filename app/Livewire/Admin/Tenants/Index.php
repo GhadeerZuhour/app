@@ -2,63 +2,29 @@
 
 namespace App\Livewire\Admin\Tenants;
 
+use App\Models\Tenant;
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Tenant;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Str;
 
 class Index extends Component
 {
     use WithPagination;
 
-    public string $search = '';
+    public string $q = '';
 
-    public function updatingSearch()
+    public function render(): View
     {
-        $this->resetPage();
-    }
+        $tenants = Tenant::query()
+            ->with('meta', 'domains')
+            ->when($this->q !== '', function ($query) {
+                $q = $this->q;
+                $query->whereHas('meta', fn($m) => $m->where('name', 'ilike', "%{$q}%")
+                                                 ->orWhere('owner_email', 'ilike', "%{$q}%"));
+            })
+            ->orderByDesc('created_at')
+            ->paginate(20);
 
-    public function migrate(string $tenantId)
-    {
-        Artisan::call('tenants:migrate', [
-            '--tenants' => [$tenantId],
-            '--path'    => 'database/migrations/tenant',
-            '--force'   => true,
-        ]);
-
-        session()->flash('success', 'Tenant migrations executed');
-    }
-
-    public function toggle(string $tenantId)
-    {
-        $tenant = Tenant::findOrFail($tenantId);
-
-        $active = $tenant->subscription_is_active; // ✅ accessor
-        $tenant->update([
-            'data->subscription->is_active' => ! $active,
-        ]);
-
-        session()->flash('success', 'Tenant status updated');
-    }
-
-    public function delete(string $tenantId)
-    {
-        Tenant::findOrFail($tenantId)->delete();
-        session()->flash('success', 'Tenant deleted');
-    }
-
-    public function render()
-    {
-        $q = Tenant::query()->with('domains')->latest();
-
-        if ($this->search !== '') {
-            $s = Str::lower(trim($this->search));
-            $q->whereRaw("LOWER(COALESCE(data->>'tenant_name','')) LIKE ?", ["%{$s}%"]);
-        }
-
-        return view('livewire.admin.tenants.index', [
-            'tenants' => $q->paginate(10),
-        ]);
+        return view('livewire.admin.tenants.index', compact('tenants'));
     }
 }

@@ -25,4 +25,8 @@ Route::middleware(['auth'])
             ->name('tenants.create');
         Route::get('tenants/{tenant}', \App\Livewire\Admin\Tenants\Show::class)
             ->name('tenants.show');
+        Route::get('/{tenantId}/edit', \App\Livewire\Admin\Tenants\Edit::class)
+            ->name('tenants.edit');
+
+
     });
