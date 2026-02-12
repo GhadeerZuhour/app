@@ -25,14 +25,16 @@
         <div class="col-md-6">
             <select class="form-select" wire:model.defer="subscription_period">
                 <option value="monthly">Monthly</option>
+                <option value="quarterly">quarterly</option>
+                <option value="semiannual">semiannual</option>
                 <option value="yearly">Yearly</option>
             </select>
             @error('subscription_period') <div class="text-danger small">{{ $message }}</div> @enderror
         </div>
 
         <div class="col-md-6">
-            <input type="date" class="form-control" wire:model.defer="subscription_ends_at">
-            @error('subscription_ends_at') <div class="text-danger small">{{ $message }}</div> @enderror
+            <input type="date" class="form-control" wire:model.defer="subscription_start_at">
+            @error('subscription_start_at') <div class="text-danger small">{{ $message }}</div> @enderror
         </div>
 
         <div class="col-12">

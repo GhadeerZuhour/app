@@ -16,8 +16,8 @@ return new class extends Migration {
             $table->unsignedBigInteger('owner_user_id')->nullable();
             $table->string('owner_email')->nullable();
 
-            $table->enum('subscription_period', ['monthly', 'yearly'])->default('monthly');
-            $table->date('subscription_ends_at')->nullable();
+            $table->enum('subscription_period', ['monthly','quarterly', 'semiannual', 'yearly'])->default('monthly');
+            $table->date('subscription_start_at')->nullable();
             $table->boolean('is_active')->default(true);
 
             $table->timestamps();

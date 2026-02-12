@@ -25,17 +25,20 @@ class Create extends Component
     public ?string $tenant_type = null;
 
     public string $subscription_period = 'monthly';
-    public ?string $subscription_ends_at = null;
+    public ?string $subscription_start_at = null;
 
     public bool $is_active = true;
 
     public function save()
     {
+
+    //  dd($this->subscription_start_at);
         $this->validate([
             'owner_name'          => 'required|string|min:2',
             'owner_email'         => 'required|email|unique:users,email',
             'tenant_name'         => 'required|string|min:2',
-            'subscription_period' => 'required|in:monthly,yearly',
+            'subscription_period' => 'required|in:monthly,quarterly,semiannual,yearly',
+            'subscription_start_at' => 'required|date',
         ]);
 
         DB::beginTransaction();
@@ -60,7 +63,7 @@ class Create extends Component
                 'owner_user_id'        => $user->id,
                 'owner_email'          => $user->email,
                 'subscription_period'  => $this->subscription_period,
-                'subscription_ends_at' => $this->subscription_ends_at,
+                'subscription_start_at' => $this->subscription_start_at,
                 'is_active'            => (bool) $this->is_active,
             ]);
 

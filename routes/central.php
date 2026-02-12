@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TenantReceiptController;
+use App\Livewire\Admin\Tenants\Show;
 
 Route::middleware('guest')->group(function () {
     Route::view('/login', 'livewire.auth.login')->name('login');
@@ -27,6 +29,9 @@ Route::middleware(['auth'])
             ->name('tenants.show');
         Route::get('/{tenantId}/edit', \App\Livewire\Admin\Tenants\Edit::class)
             ->name('tenants.edit');
+               Route::get('tenants/{tenant}/receipt', [TenantReceiptController::class, 'show'])
+            ->name('tenants.receipt');
+
 
 
     });

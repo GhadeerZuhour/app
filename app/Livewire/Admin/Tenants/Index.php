@@ -15,13 +15,18 @@ class Index extends Component
 
     public function render(): View
     {
+        // $tenants = Tenant::query()
+        //     ->with('meta', 'domains')
+        //     ->when($this->q !== '', function ($query) {
+        //         $q = $this->q;
+        //         $query->whereHas('meta', fn($m) => $m->where('name', 'ilike', "%{$q}%")
+        //                                          ->orWhere('owner_email', 'ilike', "%{$q}%"));
+        //     })
+        //     ->orderByDesc('created_at')
+        //     ->paginate(20);
+
         $tenants = Tenant::query()
-            ->with('meta', 'domains')
-            ->when($this->q !== '', function ($query) {
-                $q = $this->q;
-                $query->whereHas('meta', fn($m) => $m->where('name', 'ilike', "%{$q}%")
-                                                 ->orWhere('owner_email', 'ilike', "%{$q}%"));
-            })
+            ->with(['meta.owner', 'domains'])
             ->orderByDesc('created_at')
             ->paginate(20);
 
