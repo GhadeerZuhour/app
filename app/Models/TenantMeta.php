@@ -45,7 +45,7 @@ class TenantMeta extends Model
     {
 
         if (!$this->subscription_start_at) {
-            return null; 
+            return null;
         }
 
 
@@ -61,4 +61,27 @@ class TenantMeta extends Model
             default       => $start->copy()->addMonth(),
         };
     }
+
+    public function statusLabel(): string
+    {
+        $endsAt = $this->computedEndsAt();
+
+        if ($endsAt && now()->startOfDay()->gt($endsAt->startOfDay())) {
+            return 'EXPIRED';
+        }
+
+        return $this->is_active ? 'ACTIVE' : 'SUSPENDED';
+    }
+
+    public function daysLeft(): ?int
+{
+    $endsAt = $this->computedEndsAt();
+
+    if (!$endsAt) {
+        return null;
+    }
+
+    return now()->startOfDay()->diffInDays($endsAt->startOfDay(), false);
+}
+
 }

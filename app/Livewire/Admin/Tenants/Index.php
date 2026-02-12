@@ -7,9 +7,16 @@ use Illuminate\Contracts\View\View;
 use Livewire\Component;
 use Livewire\WithPagination;
 
+use App\Models\TenantMeta;
+use Illuminate\Support\Carbon;
+
 class Index extends Component
 {
     use WithPagination;
+
+    public $statusFilter = null;
+    public $planFilter = null;
+    public $search = null;
 
     public string $q = '';
 
@@ -31,5 +38,46 @@ class Index extends Component
             ->paginate(20);
 
         return view('livewire.admin.tenants.index', compact('tenants'));
+
+
+        
+    }
+
+
+    public function suspend(string $tenantId)
+    {
+        $meta = TenantMeta::where('tenant_id', $tenantId)->first();
+
+        if (!$meta) return;
+
+        $meta->is_active = false;
+        $meta->save();
+
+        session()->flash('success', 'Subscription suspended.');
+    }
+
+    public function renew(string $tenantId)
+    {
+        $meta = TenantMeta::where('tenant_id', $tenantId)->first();
+
+        if (!$meta) return;
+
+
+        $meta->subscription_start_at = now()->toDateString();
+        $meta->is_active = true;
+        $meta->save();
+
+        session()->flash('success', 'Subscription renewed.');
+    }
+
+    public function daysLeft(): ?int
+    {
+        $endsAt = $this->computedEndsAt();
+
+        if (!$endsAt) {
+            return null;
+        }
+
+        return now()->startOfDay()->diffInDays($endsAt->startOfDay(), false);
     }
 }

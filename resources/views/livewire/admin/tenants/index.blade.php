@@ -1,4 +1,4 @@
-<div class="container py-4">
+<div class="">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4>Tenants</h4>
@@ -53,12 +53,19 @@
 
                         {{-- Active Status --}}
                         <td>
-                            @if($tenant->meta?->is_active)
+                            @php $status = $tenant->meta?->statusLabel() ?? '—'; @endphp
+
+                            @if($status === 'ACTIVE')
                             <span class="badge bg-success">ACTIVE</span>
+                            @elseif($status === 'SUSPENDED')
+                            <span class="badge bg-warning text-dark">SUSPENDED</span>
+                            @elseif($status === 'EXPIRED')
+                            <span class="badge bg-danger">EXPIRED</span>
                             @else
-                            <span class="badge bg-danger">SUSPENDED</span>
+                            <span class="badge bg-secondary">—</span>
                             @endif
                         </td>
+
 
                         {{-- Subscription Period --}}
                         <td>
@@ -66,11 +73,27 @@
                         </td>
 
                         {{-- Ends At --}}
+                        @php
+                        $daysLeft = $tenant->meta?->daysLeft();
+                        @endphp
+
                         <td>
-                           {{ $tenant->meta->computedEndsAt()}}
+                            {{ $tenant->meta?->computedEndsAt()?->format('Y-m-d') ?? '—' }}
 
+                            @if($daysLeft !== null)
+                            @if($daysLeft < 0)
+                                <span class="badge bg-danger ms-2">Expired</span>
+                                @elseif($daysLeft <= 3)
+                                    <span class="badge bg-warning text-dark ms-2">
+                                    {{ $daysLeft }} days left
+                                    </span>
+                                    @else
+                                    <span class="badge bg-success ms-2">
+                                        {{ $daysLeft }} days left
+                                    </span>
+                                    @endif
+                                    @endif
                         </td>
-
 
                         {{-- Domain --}}
                         <td>
@@ -90,6 +113,28 @@
                                 href="{{ route('admin.tenants.receipt', $tenant->id) }}" target="_blank">
                                 Receipt PDF
                             </a>
+
+
+                            {{-- Suspend --}}
+
+                            <button wire:click="suspend('{{ $tenant->id }}')"
+                                class="btn btn-sm btn-outline-danger"
+                                title="Suspend">
+                                <i class="ni ni-fat-remove"></i>
+                            </button>
+
+
+                            {{-- Renew --}}
+                            @if($tenant->meta?->statusLabel() === 'EXPIRED' || !$tenant->meta?->is_active)
+                            <button wire:click="renew('{{ $tenant->id }}')"
+                                class="btn btn-sm btn-outline-success"
+                                title="Renew">
+                                <i class="ni ni-refresh"></i>
+                            </button>
+                            @endif
+
+
+
                         </td>
                     </tr>
 

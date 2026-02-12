@@ -10,7 +10,7 @@
             <x-layouts.navbars.auth.nav />
 
             <!-- PAGE CONTENT -->
-            <div class="container-fluid py-4">
+            <div class="container-fluid ">
                 {{ $slot }}
 
                 <x-layouts.footers.auth.footer />

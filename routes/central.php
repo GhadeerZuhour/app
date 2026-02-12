@@ -20,6 +20,10 @@ Route::middleware(['auth'])
     ->name('admin.')
     ->group(function () {
 
+    Route::get('dashboard', \App\Livewire\Admin\Dashboard::class)
+    ->name('dashboard');
+
+
         Route::get('tenants', \App\Livewire\Admin\Tenants\Index::class)
             ->name('tenants.index');
 

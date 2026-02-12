@@ -46,8 +46,8 @@ $brandName = $isTenantApp
 
             {{-- Dashboard --}}
             <li class="nav-item pb-2">
-                <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
-                    href="{{ route('dashboard') }}">
+                <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"
+                    href="{{ route('admin.dashboard') }}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <i class="ni ni-tv-2 text-dark text-sm opacity-10"></i>
@@ -90,8 +90,8 @@ $brandName = $isTenantApp
             @if($isCentralApp && auth()->check() && (auth()->user()->role ?? null) === 'subscriber')
             {{-- Dashboard --}}
             <li class="nav-item pb-2">
-                <a class="nav-link {{ request()->routeIs('tenant.dashboard') ? 'active' : '' }}"
-                    href="{{ route('tenant.dashboard') }}">
+                <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"
+                    href="{{ route('admin.dashboard') }}">
                     <div
                         class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         {{-- keep your svg --}}
