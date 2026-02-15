@@ -79,6 +79,17 @@ $brandName = $isTenantApp
                     <span class="nav-link-text ms-1">Add Tenant</span>
                 </a>
             </li>
+      <li class="nav-item pb-2">
+                <a class="nav-link {{ request()->routeIs('admin.support.*') ? 'active' : '' }}"
+                    href="{{ route('admin.support.index') }}">
+                    <div
+                        class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="ni ni-building text-dark text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Support</span>
+                </a>
+            </li>
+      
 
             <hr class="horizontal dark my-2">
 

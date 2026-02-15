@@ -1,151 +1,50 @@
-<div class="">
-
+<div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4>Tenants</h4>
-
-        <a href="{{ route('admin.tenants.create') }}" class="btn btn-dark">
-            + Create Tenant
-        </a>
+        <a class="btn btn-dark" href="{{ route('admin.tenants.create') }}">Create</a>
     </div>
+
+    <input class="form-control mb-3" placeholder="Search name/email..." wire:model.live="q">
 
     @if(session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
+        <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <div class="card shadow-sm">
+    <div class="card">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-
-                <thead class="table-light">
-                    <tr>
-                        <th>Name</th>
-                        <th>Owner Name</th>
-                        <th>Email</th>
-                        <th>Status</th>
-                        <th>Subscription</th>
-                        <th>Ends At</th>
-                        <th>Domain</th>
-
-                        <th class="text-end">Actions</th>
-                    </tr>
+            <table class="table table-sm mb-0">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Owner</th>
+                    <th>Status</th>
+                    <th>Ends</th>
+                    <th>Domain</th>
+                    <th>DB</th>
+                    <th></th>
+                </tr>
                 </thead>
-
                 <tbody>
-                    @forelse($tenants as $tenant)
-
+                @foreach($tenants as $t)
                     <tr>
-                        {{-- Tenant Name --}}
+                        <td>{{ $t->meta?->name ?? '—' }}</td>
+                        <td>{{ $t->meta?->owner_email ?? '—' }}</td>
                         <td>
-                            {{ $tenant->meta?->name ?? '—' }}
-                        </td>
-
-                        {{-- Owner Name --}}
-                        <td>
-                            {{ $tenant->meta?->owner?->name ?? '—' }}
-                        </td>
-
-                        {{-- Owner Email --}}
-                        <td>
-                            {{ $tenant->meta?->owner_email ?? '—' }}
-                        </td>
-
-                        {{-- Active Status --}}
-                        <td>
-                            @php $status = $tenant->meta?->statusLabel() ?? '—'; @endphp
-
-                            @if($status === 'ACTIVE')
-                            <span class="badge bg-success">ACTIVE</span>
-                            @elseif($status === 'SUSPENDED')
-                            <span class="badge bg-warning text-dark">SUSPENDED</span>
-                            @elseif($status === 'EXPIRED')
-                            <span class="badge bg-danger">EXPIRED</span>
+                            @if(($t->meta?->is_active ?? false) === true)
+                                ACTIVE
                             @else
-                            <span class="badge bg-secondary">—</span>
+                                SUSPENDED
                             @endif
                         </td>
-
-
-                        {{-- Subscription Period --}}
-                        <td>
-                            {{ strtoupper($tenant->meta?->subscription_period ?? '-') }}
-                        </td>
-
-                        {{-- Ends At --}}
-                        @php
-                        $daysLeft = $tenant->meta?->daysLeft();
-                        @endphp
-
-                        <td>
-                            {{ $tenant->meta?->computedEndsAt()?->format('Y-m-d') ?? '—' }}
-
-                            @if($daysLeft !== null)
-                            @if($daysLeft < 0)
-                                <span class="badge bg-danger ms-2">Expired</span>
-                                @elseif($daysLeft <= 3)
-                                    <span class="badge bg-warning text-dark ms-2">
-                                    {{ $daysLeft }} days left
-                                    </span>
-                                    @else
-                                    <span class="badge bg-success ms-2">
-                                        {{ $daysLeft }} days left
-                                    </span>
-                                    @endif
-                                    @endif
-                        </td>
-
-                        {{-- Domain --}}
-                        <td>
-                            {{ optional($tenant->domains->first())->domain ?? '—' }}
-                        </td>
-
-
-
-                        {{-- Actions --}}
+                        <td>{{ optional($t->meta?->subscription_ends_at)?->format('Y-m-d') ?? '—' }}</td>
+                        <td>{{ optional($t->domains->first())->domain ?? '—' }}</td>
+                        <td>{{ $t->tenancy_db_name ?? '—' }}</td>
                         <td class="text-end">
-                            <a href="{{ route('admin.tenants.edit', $tenant->id) }}"
-                                class="btn btn-sm btn-outline-primary">
-                                Edit
-                            </a>
-
-                            <a class="btn btn-sm btn-outline-secondary"
-                                href="{{ route('admin.tenants.receipt', $tenant->id) }}" target="_blank">
-                                Receipt PDF
-                            </a>
-
-
-                            {{-- Suspend --}}
-
-                            <button wire:click="suspend('{{ $tenant->id }}')"
-                                class="btn btn-sm btn-outline-danger"
-                                title="Suspend">
-                                <i class="ni ni-fat-remove"></i>
-                            </button>
-
-
-                            {{-- Renew --}}
-                            @if($tenant->meta?->statusLabel() === 'EXPIRED' || !$tenant->meta?->is_active)
-                            <button wire:click="renew('{{ $tenant->id }}')"
-                                class="btn btn-sm btn-outline-success"
-                                title="Renew">
-                                <i class="ni ni-refresh"></i>
-                            </button>
-                            @endif
-
-
-
+                            <a class="btn btn-sm btn-outline-primary"
+                               href="{{ route('admin.tenants.edit', $t->id) }}">Edit</a>
                         </td>
                     </tr>
-
-                    @empty
-                    <tr>
-                        <td colspan="9" class="text-center text-muted py-4">
-                            No tenants found.
-                        </td>
-                    </tr>
-                    @endforelse
-
+                @endforeach
                 </tbody>
             </table>
         </div>
@@ -154,5 +53,4 @@
     <div class="mt-3">
         {{ $tenants->links() }}
     </div>
-
 </div>

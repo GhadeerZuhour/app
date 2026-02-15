@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
+use App\Models\SupportTicket;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,4 +45,22 @@ Route::middleware([
 
     Route::get('/entries', \App\Livewire\Entries\Index::class)->name('entries.index');
     Route::get('/entries/create', \App\Livewire\Entries\Create::class)->name('entries.create');
+
+    
+    Route::prefix('app')->name('tenant.')->group(function () {
+
+        Route::get('support', fn() => view('tenant.support.index'))
+            ->name('support.index');
+
+        Route::get('support/create', fn() => view('tenant.support.create'))
+            ->name('support.create');
+
+        Route::get('support/{ticket}', fn(SupportTicket $ticket) => view('tenant.support.show', compact('ticket')))
+            ->whereUuid('ticket')
+            ->name('support.show');
+
+    });
+
+
+
 });
