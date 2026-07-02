@@ -31,18 +31,19 @@ Route::middleware(['auth'])
 
         Route::get('tenants/create', \App\Livewire\Admin\Tenants\Create::class)
             ->name('tenants.create');
-      
+        Route::get('tenants/{tenant}', \App\Livewire\Admin\Tenants\Show::class)
+            ->name('tenants.show');
         Route::get('/{tenantId}/edit', \App\Livewire\Admin\Tenants\Edit::class)
             ->name('tenants.edit');
-     
 
 
-         Route::get('support', fn() => view('admin.support.index'))
+
+        Route::get('support', \App\Livewire\Admin\Support\Index::class)
             ->name('support.index');
 
-        Route::get('support/{ticket}', fn(SupportTicket $ticket) => view('admin.support.show', compact('ticket')))
-            ->whereUuid('ticket')
+        Route::get('support/{ticket}', \App\Livewire\Admin\Support\Show::class)
             ->name('support.show');
+
 
 
 

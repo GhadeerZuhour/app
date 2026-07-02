@@ -52,9 +52,8 @@ class User extends Authenticatable
 
     public function tenant()
     {
-        return $this->hasOne(Tenant::class);
+        return $this->belongsTo(\App\Models\Tenant::class, 'tenant_id');
     }
-
     /**
      * Get the user's initials
      */

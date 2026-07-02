@@ -1,16 +1,14 @@
-<div>
+<div class="container-fluid py-3">
     <div class="d-flex align-items-center justify-content-between mb-3">
         <div>
-            <h3 class="mb-0">Support Dashboard</h3>
+            <h4 class="mb-0">Support Dashboard</h4>
             <div class="text-muted small">Central tickets (all tenants)</div>
         </div>
-
         <a class="btn btn-outline-secondary" href="{{ route('admin.dashboard') }}">
-            Back to Admin Dashboard
+            Back
         </a>
     </div>
 
-    {{-- Cards --}}
     <div class="row g-3 mb-3">
         <div class="col-md-3">
             <div class="card p-3">
@@ -38,13 +36,11 @@
         </div>
     </div>
 
-    {{-- Filters --}}
     <div class="card p-3 mb-3">
         <div class="row g-2 align-items-end">
             <div class="col-md-3">
                 <label class="form-label small">Search</label>
-                <input class="form-control" placeholder="subject / requester"
-                       wire:model.live="q">
+                <input class="form-control" placeholder="subject / requester" wire:model.live="q">
             </div>
 
             <div class="col-md-3">
@@ -84,7 +80,6 @@
         </div>
     </div>
 
-    {{-- Table --}}
     <div class="card">
         <div class="table-responsive">
             <table class="table mb-0 align-middle">
@@ -99,7 +94,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                @forelse($tickets as $t)
+                @forelse($rows as $t)
                     <tr>
                         <td class="fw-semibold">{{ $t->subject }}</td>
                         <td>{{ $t->requester_name }}</td>
@@ -131,7 +126,7 @@
         </div>
 
         <div class="p-3">
-            {{ $tickets->links() }}
+            {{ $rows->links() }}
         </div>
     </div>
 </div>

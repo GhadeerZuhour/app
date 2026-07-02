@@ -15,9 +15,9 @@ class Show extends Component
     {
         abort_unless(auth()->user()?->role === 'subscriber', 403);
 
-        // حماية: التذكرة لازم تكون لنفس tenant + نفس user
         abort_unless($ticket->tenant_id === tenant('id'), 403);
-        abort_unless($ticket->user_id === auth()->id(), 403);
+        abort_unless($ticket->requester_tenant_user_id === auth()->id(), 403);
+
 
         $this->ticket = $ticket->load(['messages.user']);
     }
@@ -26,9 +26,14 @@ class Show extends Component
     {
         $this->validate(['reply' => 'required|min:2']);
 
+        $tenantUser = auth()->user();
+
         SupportMessage::create([
             'ticket_id' => $this->ticket->id,
-            'user_id' => auth()->id(),
+            'sender_type' => 'tenant_user',
+            'tenant_user_id' => auth()->id(),
+            'sender_name' => $tenantUser->name,
+            'sender_email' => $tenantUser->email,
             'message' => $this->reply,
         ]);
 
