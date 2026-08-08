@@ -36,66 +36,63 @@ class DemoSeeder extends Seeder
                 ['branch' => 'Ramallah']
             );
 
-            $cash = Account::firstOrCreate(
-                [
-                    'tenant_id' => $tenant->id,
-                    'name' => 'Main Cash',
-                ],
+            $cash = Account::updateOrCreate(
+                ['tenant_id' => $tenant->id, 'name' => 'Main Cash'],
                 [
                     'currency_id' => $currency->id,
                     'type' => 'cash',
                     'status' => 'active',
+                    'balance' => 12350,
+                    'is_active' => true,
                 ]
             );
 
-            $bankAccount = Account::firstOrCreate(
-                [
-                    'tenant_id' => $tenant->id,
-                    'name' => 'Operating Bank Account',
-                ],
+            $bankAccount = Account::updateOrCreate(
+                ['tenant_id' => $tenant->id, 'name' => 'Operating Bank Account'],
                 [
                     'bank_id' => $bank->id,
                     'currency_id' => $currency->id,
                     'type' => 'bank',
                     'status' => 'active',
+                    'balance' => 37600,
+                    'is_active' => true,
                 ]
             );
 
             $month = now()->startOfMonth()->toDateString();
 
             ZeroBalance::updateOrCreate(
-                [
-                    'tenant_id' => $tenant->id,
-                    'account_id' => $cash->id,
-                    'month' => $month,
-                ],
+                ['tenant_id' => $tenant->id, 'account_id' => $cash->id, 'month' => $month],
                 ['zero_amount' => 8500]
             );
 
             ZeroBalance::updateOrCreate(
-                [
-                    'tenant_id' => $tenant->id,
-                    'account_id' => $bankAccount->id,
-                    'month' => $month,
-                ],
+                ['tenant_id' => $tenant->id, 'account_id' => $bankAccount->id, 'month' => $month],
                 ['zero_amount' => 32000]
             );
 
             $ownerId = $tenant->meta?->owner_user_id;
 
-            $this->createEntry($tenant->id, $cash->id, $ownerId, 'cash', 4200, now()->subDays(8));
-            $this->createEntry($tenant->id, $cash->id, $ownerId, 'cash', 1350, now()->subDays(5));
-            $this->createEntry($tenant->id, $bankAccount->id, $ownerId, 'bank', 7800, now()->subDays(4));
+            $this->createEntry($tenant->id, $cash->id, $ownerId, 'cash', 'in', 6200, now()->subDays(10), 'Cash sales', 'SALE-1001');
+            $this->createEntry($tenant->id, $cash->id, $ownerId, 'cash', 'out', 2350, now()->subDays(8), 'Supplier payment', 'EXP-2001');
+            $this->createEntry($tenant->id, $bankAccount->id, $ownerId, 'bank', 'in', 9800, now()->subDays(6), 'Customer transfer', 'TR-3001');
+            $this->createEntry($tenant->id, $bankAccount->id, $ownerId, 'bank', 'out', 4200, now()->subDays(4), 'Monthly operating expenses', 'EXP-2002');
+            $this->createEntry($tenant->id, $cash->id, $ownerId, 'cash', 'in', 1800, now()->subDays(2), 'Retail receipts', 'SALE-1002');
 
-            $checkEntry = Entry::firstOrCreate(
+            $checkEntry = Entry::updateOrCreate(
                 [
                     'tenant_id' => $tenant->id,
                     'account_id' => $bankAccount->id,
                     'payment_method' => 'check',
-                    'entry_date' => now()->subDays(2)->toDateString(),
-                    'total_amount' => 7500,
+                    'reference_no' => 'CHK-BATCH-01',
                 ],
-                ['user_id' => $ownerId]
+                [
+                    'user_id' => $ownerId,
+                    'direction' => 'in',
+                    'entry_date' => now()->subDay()->toDateString(),
+                    'total_amount' => 7500,
+                    'description' => 'Three scheduled customer checks',
+                ]
             );
 
             foreach ([
@@ -103,11 +100,8 @@ class DemoSeeder extends Seeder
                 ['number' => 'CHK-1002', 'months' => 1],
                 ['number' => 'CHK-1003', 'months' => 2],
             ] as $item) {
-                CheckDetails::firstOrCreate(
-                    [
-                        'entry_id' => $checkEntry->id,
-                        'check_number' => $item['number'],
-                    ],
+                CheckDetails::updateOrCreate(
+                    ['entry_id' => $checkEntry->id, 'check_number' => $item['number']],
                     [
                         'customer' => 'Demo Customer',
                         'item' => 'Monthly service payment',
@@ -132,18 +126,26 @@ class DemoSeeder extends Seeder
         int $accountId,
         ?int $userId,
         string $method,
+        string $direction,
         float $amount,
-        Carbon $date
+        Carbon $date,
+        string $description,
+        string $reference
     ): void {
-        Entry::firstOrCreate(
+        Entry::updateOrCreate(
             [
                 'tenant_id' => $tenantId,
+                'reference_no' => $reference,
+            ],
+            [
                 'account_id' => $accountId,
+                'user_id' => $userId,
                 'payment_method' => $method,
+                'direction' => $direction,
                 'entry_date' => $date->toDateString(),
                 'total_amount' => $amount,
-            ],
-            ['user_id' => $userId]
+                'description' => $description,
+            ]
         );
     }
 }
