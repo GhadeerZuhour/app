@@ -22,12 +22,24 @@ npm run build
 
 Configure the central PostgreSQL database and tenancy database connection in `.env` before creating a tenant.
 
-## Demo data
+## Tenant database setup
 
-After creating at least one active tenant and allowing the tenant migrations to complete:
+After creating at least one active tenant, run the tenant migrations explicitly before loading demo data:
 
 ```bash
-php artisan db:seed --class=DemoSeeder
+php artisan tenants:migrate --path=database/migrations/tenant
+```
+
+This step creates the tenant-side tables used by Tazreem, including the reference and cash-flow tables needed by the demo. Running only `php artisan migrate` migrates the central database and is not enough for an existing tenant database.
+
+## Demo data
+
+After the tenant migrations finish successfully, run:
+
+```bash
+php artisan optimize:clear
+composer dump-autoload
+php artisan db:seed --class="Database\Seeders\DemoSeeder"
 ```
 
 The demo dataset includes:
@@ -70,4 +82,5 @@ The tenant dashboard should show:
 
 - Do not merge this branch into `main` before the smoke test passes.
 - `DemoSeeder` is manual and should not be run against production data.
+- Always run tenant migrations before `DemoSeeder` on a new or existing demo tenant database.
 - If any migration, tenant-domain, authentication, RTL, or Blade error appears during testing, capture the full error message and stack trace before changing the database manually.
