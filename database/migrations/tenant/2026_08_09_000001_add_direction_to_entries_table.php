@@ -12,3 +12,15 @@ return new class extends Migration
             Schema::table('entries', function (Blueprint $table) {
                 $table->string('direction', 10)->default('in')->after('payment_method')->index();
             });
+        }
+    }
+
+    public function down(): void
+    {
+        if (Schema::hasColumn('entries', 'direction')) {
+            Schema::table('entries', function (Blueprint $table) {
+                $table->dropColumn('direction');
+            });
+        }
+    }
+};
