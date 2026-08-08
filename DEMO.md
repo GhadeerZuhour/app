@@ -1,6 +1,6 @@
 # Tazreem Demo Runbook
 
-This branch adds a small, repeatable demo setup for Tazreem.
+This branch prepares a repeatable investor/customer demo for Tazreem without changing the normal production seeding flow.
 
 ## 1. Prepare the application
 
@@ -17,13 +17,13 @@ Configure the central database and tenancy database connection in `.env` before 
 
 ## 2. Create a tenant
 
-Start the application and sign in as an admin. From the admin tenant screen create one active tenant with a local domain such as:
+Start the application and sign in as an admin. From the admin tenant screen create one active tenant.
 
-```text
-demo-company.localhost
+The existing tenant creation flow creates the tenant database and runs the tenant migrations. For an existing tenant, make sure the new demo migration has run:
+
+```bash
+php artisan tenants:migrate --path=database/migrations/tenant --force
 ```
-
-The existing tenant creation flow creates the tenant database and runs tenant migrations.
 
 ## 3. Add demo data
 
@@ -33,38 +33,87 @@ After at least one tenant exists, run:
 php artisan db:seed --class=DemoSeeder
 ```
 
-The seeder uses the first tenant and adds:
+The seeder uses the first tenant and adds realistic presentation data:
 
-- ILS currency
-- Demo bank
-- Main Cash account
-- Operating Bank Account
-- Opening balances for the current month
-- Cash transactions
-- Bank transaction
+- ILS currency and a demo bank
+- Main Cash and Operating Bank accounts
+- Opening balances and account balances
+- Incoming cash sales and bank transfers
+- Outgoing supplier and operating expenses
+- Six months of historical cash-flow data
 - Three scheduled customer checks
+- References and descriptions for transaction search/demo
 
-The seeder is idempotent enough for repeated demo preparation and does not run automatically from `DatabaseSeeder`.
+The seeder is designed for repeatable demo preparation and is not called automatically from `DatabaseSeeder`.
 
-## 4. Demo login and flow
+## 4. Recommended demo flow
 
-Use the owner account for the demo tenant, then browse to the tenant domain.
+### Opening — 30 seconds
 
-Recommended presentation flow:
+Explain the problem first:
 
-1. **Dashboard** — explain that Tazreem gives a business a quick view of monthly activity and upcoming checks.
-2. **Accounts** — show cash and bank accounts with their currencies.
-3. **Transactions** — show cash, bank, and check-based entries in one place.
-4. **Add transaction** — record a simple cash or bank entry.
-5. **Checks** — demonstrate generating multiple scheduled checks from one entry.
-6. **Dashboard again** — show how the overview reflects operational financial activity.
+> Small businesses often know how much they sold, but they do not have one simple place showing cash, bank movements, post-dated checks, and what is coming next. Tazreem turns those daily movements into a clear cash-flow picture.
+
+### Dashboard — 60 seconds
+
+Show these four KPIs:
+
+1. **Money in** — what entered the business this month.
+2. **Money out** — operating outflows and supplier payments.
+3. **Net cash flow** — the difference between incoming and outgoing money.
+4. **Available across accounts** — current cash and bank balances.
+
+Then point to the six-month trend and explain that Tazreem helps the owner identify whether cash flow is improving or tightening.
+
+### Upcoming checks — 30 seconds
+
+Show the scheduled checks and explain that Tazreem makes future cash visible instead of leaving post-dated checks in spreadsheets or physical files.
+
+### Accounts — 30 seconds
+
+Open **Accounts** and show that cash and bank accounts are managed separately with currency and balance information.
+
+### Transactions — 60 seconds
+
+Open **Transactions** and show:
+
+- Reference number
+- Description
+- Cash / bank / check payment method
+- Incoming / outgoing direction
+- Positive and negative financial movement
+- Month, type, search, and archive filters
+
+### Add transaction — 60 seconds
+
+Create one transaction live. The purpose is to demonstrate that daily data entry is simple and does not require accounting expertise.
+
+### Checks — 60 seconds
+
+Create a check entry with multiple scheduled checks. Show how Tazreem generates the payment schedule and allows each check to be reviewed.
+
+### Return to dashboard — 30 seconds
+
+Finish by returning to the dashboard and reinforcing the product value:
+
+> Tazreem is not another accounting ERP. It gives the business owner a simple operational view of liquidity: what came in, what went out, what is available, and what is expected next.
 
 ## Demo story
 
-> A small business currently tracks cash, bank transfers, and post-dated checks in spreadsheets and WhatsApp messages. Tazreem centralizes these movements per company, keeps each tenant separated, and gives the owner a clearer view of what happened this month and what payments are coming next.
+A useful fictional customer is **Zaitouna Trading**, a small Palestinian trading company with cash sales, bank transfers, supplier expenses, and customer post-dated checks. The owner currently tracks these in Excel and WhatsApp. Tazreem provides one tenant-isolated workspace with a much clearer view of liquidity.
+
+## Before presenting
+
+- Run all central and tenant migrations.
+- Run `DemoSeeder` once.
+- Confirm the tenant owner can sign in.
+- Open Dashboard, Accounts, Transactions, and Create Transaction before the meeting.
+- Keep one incoming transaction ready to enter live.
+- Avoid showing admin/developer screens unless the audience asks about SaaS tenant management.
 
 ## Notes
 
-- Demo data is intended for development/presentation environments only.
+- Demo data is for development/presentation environments only.
 - Do not run the demo seeder against production data.
-- The tenant dashboard is located at `resources/views/tenant-dashboard.blade.php`.
+- The dashboard is at `resources/views/tenant-dashboard.blade.php`.
+- The demo migration adds `direction` to tenant `entries` so cash flow can distinguish incoming and outgoing movements.
