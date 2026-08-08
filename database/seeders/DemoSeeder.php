@@ -73,11 +73,50 @@ class DemoSeeder extends Seeder
 
             $ownerId = $tenant->meta?->owner_user_id;
 
+            // Current month: enough activity for the transaction list and KPI cards.
             $this->createEntry($tenant->id, $cash->id, $ownerId, 'cash', 'in', 6200, now()->subDays(10), 'Cash sales', 'SALE-1001');
             $this->createEntry($tenant->id, $cash->id, $ownerId, 'cash', 'out', 2350, now()->subDays(8), 'Supplier payment', 'EXP-2001');
             $this->createEntry($tenant->id, $bankAccount->id, $ownerId, 'bank', 'in', 9800, now()->subDays(6), 'Customer transfer', 'TR-3001');
             $this->createEntry($tenant->id, $bankAccount->id, $ownerId, 'bank', 'out', 4200, now()->subDays(4), 'Monthly operating expenses', 'EXP-2002');
             $this->createEntry($tenant->id, $cash->id, $ownerId, 'cash', 'in', 1800, now()->subDays(2), 'Retail receipts', 'SALE-1002');
+
+            // Historical months: gives the dashboard a useful six-month trend immediately.
+            $history = [
+                5 => [11200, 7600],
+                4 => [12800, 8300],
+                3 => [14100, 9100],
+                2 => [13600, 8700],
+                1 => [15800, 9900],
+            ];
+
+            foreach ($history as $monthsAgo => [$moneyIn, $moneyOut]) {
+                $date = now()->subMonths($monthsAgo)->startOfMonth()->addDays(8);
+                $key = $date->format('Ym');
+
+                $this->createEntry(
+                    $tenant->id,
+                    $bankAccount->id,
+                    $ownerId,
+                    'bank',
+                    'in',
+                    $moneyIn,
+                    $date,
+                    'Historical customer receipts',
+                    "DEMO-IN-{$key}"
+                );
+
+                $this->createEntry(
+                    $tenant->id,
+                    $bankAccount->id,
+                    $ownerId,
+                    'bank',
+                    'out',
+                    $moneyOut,
+                    $date->copy()->addDays(10),
+                    'Historical operating expenses',
+                    "DEMO-OUT-{$key}"
+                );
+            }
 
             $checkEntry = Entry::updateOrCreate(
                 [
