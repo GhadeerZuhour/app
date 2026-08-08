@@ -11,10 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('account_month_closings', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
+        // Demo databases created during earlier development may already contain
+        // this table while their migrations table is missing this migration.
+        // Keep the migration idempotent so Laravel can synchronize its history
+        // and continue with the migrations that add the remaining columns.
+        if (! Schema::hasTable('account_month_closings')) {
+            Schema::create('account_month_closings', function (Blueprint $table) {
+                $table->id();
+                $table->timestamps();
+            });
+        }
     }
 
     /**
