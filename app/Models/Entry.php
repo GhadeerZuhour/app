@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Account;
 use App\Models\CheckDetails;
-use App\Models\User;    
+use App\Models\User;
 
 class Entry extends Model
 {
@@ -14,8 +14,13 @@ class Entry extends Model
         'account_id',
         'user_id',
         'payment_method',
+        'direction',
         'total_amount',
         'entry_date',
+        'period',
+        'reference_no',
+        'description',
+        'is_archived',
     ];
 
     public function account()
@@ -34,26 +39,29 @@ class Entry extends Model
     }
 
     public function bankTransfer()
-{
-    return $this->hasOne(\App\Models\BankTransferDetails::class, 'entry_id');
-}
+    {
+        return $this->hasOne(\App\Models\BankTransferDetails::class, 'entry_id');
+    }
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-   protected static function booted()
-{
-    static::creating(function ($entry) {
-        if (empty($entry->period) && !empty($entry->entry_date)) {
-            $entry->period = \Carbon\Carbon::parse($entry->entry_date)->format('Y-m');
-        }
-        if (empty($entry->tenant_id)) {
-            $entry->tenant_id = tenant_id();
-        }
-    });
-}
+    protected static function booted()
+    {
+        static::creating(function ($entry) {
+            if (empty($entry->period) && ! empty($entry->entry_date)) {
+                $entry->period = \Carbon\Carbon::parse($entry->entry_date)->format('Y-m');
+            }
 
-}
+            if (empty($entry->tenant_id)) {
+                $entry->tenant_id = tenant_id();
+            }
 
+            if (empty($entry->direction)) {
+                $entry->direction = 'in';
+            }
+        });
+    }
+}

@@ -13,6 +13,8 @@ class Account extends Model
         'currency_id',
         'type',
         'status',
+        'balance',
+        'is_active',
     ];
 
     public function tenant()
